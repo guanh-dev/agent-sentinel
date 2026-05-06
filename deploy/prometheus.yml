@@ -1,0 +1,24 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: "agent-sentinel"
+
+scrape_configs:
+  # Agent metrics forwarded by OTel Collector
+  - job_name: "agent_metrics"
+    static_configs:
+      - targets: ["otel-collector:8889"]
+    relabel_configs:
+      - source_labels: [service_name]
+        target_label: agent_name
+
+  # OTel Collector self-health
+  - job_name: "otel_collector_self"
+    static_configs:
+      - targets: ["otel-collector:8888"]
+
+  # Prometheus self-monitoring
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]

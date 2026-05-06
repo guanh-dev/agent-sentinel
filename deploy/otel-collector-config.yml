@@ -1,0 +1,64 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    timeout: 10s
+    send_batch_size: 1024
+
+  # Add agent_project label from resource attributes for multi-agent routing
+  resource:
+    attributes:
+      - key: agent.project
+        from_attribute: service.namespace
+        action: insert
+
+  # Memory limiter prevents OOM in long-running sessions
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 256
+    spike_limit_mib: 64
+
+  # Rename 'job' attribute on incoming metrics to 'source_job' to avoid
+  # collision with Prometheus's reserved 'job' scrape label
+  transform/fix_labels:
+    metric_statements:
+      - context: datapoint
+        statements:
+          - set(attributes["source_job"], attributes["job"]) where attributes["job"] != nil
+          - delete_key(attributes, "job")
+
+exporters:
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+    namespace: agent_sentinel
+
+  # Debug exporter — visible in `docker logs sentinel-otel-collector`
+  debug:
+    verbosity: basic
+
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, transform/fix_labels, resource, batch]
+      exporters: [prometheus, debug]
+
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug]
+
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug]
+
+  telemetry:
+    metrics:
+      address: 0.0.0.0:8888   # Collector self-metrics

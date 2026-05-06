@@ -1,0 +1,62 @@
+version: "3.9"
+
+networks:
+  sentinel:
+    driver: bridge
+
+volumes:
+  prometheus_data: {}
+  grafana_data: {}
+
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.99.0
+    container_name: sentinel-otel-collector
+    restart: unless-stopped
+    command: ["--config=/etc/otel/config.yml"]
+    volumes:
+      - ./otel-collector-config.yml:/etc/otel/config.yml:ro
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+      - "8888:8888"   # Collector self-metrics (Prometheus scrape)
+      - "8889:8889"   # Prometheus exporter endpoint
+    networks:
+      - sentinel
+
+  prometheus:
+    image: prom/prometheus:v2.51.2
+    container_name: sentinel-prometheus
+    restart: unless-stopped
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=15d"
+      - "--web.enable-lifecycle"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      - otel-collector
+    networks:
+      - sentinel
+
+  grafana:
+    image: grafana/grafana:10.4.2
+    container_name: sentinel-grafana
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-sentinel}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_FEATURE_TOGGLES_ENABLE=publicDashboards
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - sentinel
