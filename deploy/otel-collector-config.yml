@@ -37,6 +37,7 @@ exporters:
   prometheus:
     endpoint: "0.0.0.0:8889"
     namespace: agent_sentinel
+    metric_expiration: 1h
 
   # Debug exporter — visible in `docker logs sentinel-otel-collector`
   debug:
