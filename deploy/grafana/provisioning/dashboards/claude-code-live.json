@@ -48,7 +48,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" },
-          "expr": "clamp_min(sum(agent_sentinel_ai_agent_active_sessions{agent=\"claude-code\"}) or vector(0), 0)",
+          "expr": "clamp_min(\n  (\n    (sum(agent_sentinel_ai_agent_sessions_total{agent=\"claude-code\", ai_hook_event=\"SessionStart\"}) or vector(0))\n    -\n    (sum(agent_sentinel_ai_agent_sessions_total{agent=\"claude-code\", ai_hook_event=\"Stop\"}) or vector(0))\n  ),\n  0\n)",
           "legendFormat": "",
           "refId": "A"
         }
