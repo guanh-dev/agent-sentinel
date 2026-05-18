@@ -209,7 +209,7 @@
             "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisLabel": "calls / sec",
+            "axisLabel": "total calls",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
@@ -246,7 +246,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" },
-          "expr": "sum by (ai_tool_name) (rate(agent_sentinel_ai_agent_tool_invocations_total{agent=\"claude-code\", ai_session_id=~\"$session\"}[$__rate_interval]))",
+          "expr": "sum by (ai_tool_name) (agent_sentinel_ai_agent_tool_invocations_total{agent=\"claude-code\", ai_session_id=~\"$session\"})",
           "legendFormat": "{{ai_tool_name}}",
           "refId": "A"
         }
@@ -299,7 +299,7 @@
             "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisLabel": "events / sec",
+            "axisLabel": "total events",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
@@ -356,7 +356,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" },
-          "expr": "sum by (ai_hook_event) (rate(agent_sentinel_ai_agent_events_total{agent=\"claude-code\", ai_session_id=~\"$session\"}[$__rate_interval]))",
+          "expr": "sum by (ai_hook_event) (agent_sentinel_ai_agent_events_total{agent=\"claude-code\", ai_session_id=~\"$session\"})",
           "legendFormat": "{{ai_hook_event}}",
           "refId": "A"
         }
