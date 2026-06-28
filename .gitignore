@@ -1,1 +1,17 @@
 .env
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Editor
+.idea/
+.vscode/
+*.swp
+*.swo
